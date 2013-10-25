@@ -13,9 +13,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import toon.Toon;
+
 
 
 public class SqlHandler {
+	public final int NOT_FOUND = -1;
 	// Our database settings
 	private final String DBURL = "jdbc:mysql://db4free.net:3306/swtorlefg";
 	private final String DBUN = "swtorlefg";
@@ -38,39 +41,38 @@ public class SqlHandler {
 		} catch (SQLException ex) {
 			ex.printStackTrace();
 		}
+	}	
+	public void close() throws SQLException {
+		c.close();
 	}
-
-
- 
-   
-	
-	
-	public int addingToon() {
+	public int incrementCTID() {
 		int CTID=-1;
 		try {
 			rs = s.executeQuery("SELECT CTID FROM ctrl");
 			rs.first();
 			CTID = rs.getInt("CTID");
 			updateMaster("CTID", CTID+1);
+			return CTID;
 		} catch (SQLException ex) {
 			ex.printStackTrace();
+			return NOT_FOUND;
 		}
-		return CTID;
+		
 	}
 	
 	// The next 3 insert methods are currently public, this is for testing purposes only.
 	// On any release, these should be set to private to prevent misuse.
 	
-	
-	// Insert at beginning of table
-	// UPDATE table SET attr=int WHERE set=
-	public void updateMaster(String attr, int v) {
+	public void insertToon(Toon t){
 		try {
-			s.executeUpdate("UPDATE ctrl SET "+attr+"="+v+" WHERE ID='MASTER';");
-		}catch(SQLException ex){
-			ex.printStackTrace();
+			s.executeUpdate("INSERT INTO Toon (TID, name, class, gear, comment) VALUES ("+
+							t.TID +", '"+t.name+"', '"+t.advclass+"', '"+t.gear+"', '"+t.comment+"');");
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
+	// Insert at beginning of table
 	public void insert(String table, String attr, int v) {
 		try {
 			s.executeUpdate("INSERT INTO " +table+" ("+attr+") VALUES ("+v+");");
@@ -101,4 +103,27 @@ public class SqlHandler {
 			ex.printStackTrace();
 		}
 	}
+	public int findName(String v) {
+		try {
+			rs = s.executeQuery("SELECT TID FROM Toon WHERE name='"+v+"';");
+			if (!rs.next()){
+				return NOT_FOUND;
+			} else {
+				int TID = rs.getInt("TID");
+				return TID;
+			}
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+			return NOT_FOUND;
+		}
+	}
+	
+	private void updateMaster(String attr, int v) {
+		try {
+			s.executeUpdate("UPDATE ctrl SET "+attr+"="+v+" WHERE ID='MASTER';");
+		}catch(SQLException ex){
+			ex.printStackTrace();
+		}
+	}
+
 }

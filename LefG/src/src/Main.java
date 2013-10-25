@@ -16,7 +16,7 @@ public class Main {
 	public static void main(String[] args) {
 		Toon t = new Toon("Grêen", "MA", "78s", "I own you");
 		ToonHandler th = new ToonHandler();
-		th.addToon(t.name, t.advclass, t.gear, t.comment);
+		th.addToon(t);
 	}
 
 }

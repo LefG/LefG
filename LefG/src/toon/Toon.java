@@ -1,6 +1,7 @@
 package toon;
 
 public class Toon {
+	public int TID=-1;
 	public String name;
 	public String advclass;
 	public String gear;
@@ -10,6 +11,5 @@ public class Toon {
 		this.advclass = advclass;
 		this.gear = gear;
 		this.comment = comment;
-	}
-	
+	}	
 }
