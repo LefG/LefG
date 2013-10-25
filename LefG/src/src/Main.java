@@ -14,9 +14,11 @@ public class Main {
  * 
  */
 	public static void main(String[] args) {
-		Toon t = new Toon("Grêen", "MA", "78s", "I own you");
+		//Toon t = new Toon("Grêen", "MA", "78s", "I own you");
+		//T//oonHandler th = new ToonHandler();
+		//th.addToon("Grêen");
 		ToonHandler th = new ToonHandler();
-		th.addToon(t);
+		
 	}
 
 }

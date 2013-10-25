@@ -117,6 +117,22 @@ public class SqlHandler {
 			return NOT_FOUND;
 		}
 	}
+	public Toon getToonInfo(int TID) {
+		Toon t = new Toon();
+		try {
+			rs = s.executeQuery("SELECT * FROM Toon WHERE TID="+TID+";");
+			rs.first();
+			t.TID = TID;
+			t.name = rs.getString("name");
+			t.advclass = rs.getString("class");
+			t.gear = rs.getString("gear");
+			t.comment = rs.getString("comment");
+			return t;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 	
 	private void updateMaster(String attr, int v) {
 		try {
