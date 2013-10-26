@@ -29,7 +29,8 @@ public class SqlHandler {
 	Statement s = null;
 	ResultSet rs = null;
 	
-	public void connect() {
+	// Initiates connection with the database
+	public SqlHandler() {
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
 		} catch (ClassNotFoundException ex) {
@@ -42,70 +43,37 @@ public class SqlHandler {
 			ex.printStackTrace();
 		}
 	}	
+	
+	// Closes connection to the database
 	public void close() throws SQLException {
 		c.close();
 	}
-	public int incrementCTID() {
-		int CTID=-1;
-		try {
-			rs = s.executeQuery("SELECT CTID FROM ctrl");
-			rs.first();
-			CTID = rs.getInt("CTID");
-			updateMaster("CTID", CTID+1);
-			return CTID;
-		} catch (SQLException ex) {
-			ex.printStackTrace();
-			return NOT_FOUND;
-		}
-		
-	}
-	
-	// The next 3 insert methods are currently public, this is for testing purposes only.
-	// On any release, these should be set to private to prevent misuse.
-	
+	// Inserts a toon into the database
 	public void insertToon(Toon t){
 		try {
-			s.executeUpdate("INSERT INTO Toon (TID, name, class, gear, comment) VALUES ("+
-							t.TID +", '"+t.name+"', '"+t.advclass+"', '"+t.gear+"', '"+t.comment+"');");
+			s.executeUpdate("INSERT INTO Toon (name, class, gear, comment) VALUES ("+
+							t.name+"', '"+t.advclass+"', '"+t.gear+"', '"+t.comment+"');");
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
-	// Insert at beginning of table
-	public void insert(String table, String attr, int v) {
+	
+	// Gets full list of table Toon in form of ResultSet
+	public ResultSet toonList(){
 		try {
-			s.executeUpdate("INSERT INTO " +table+" ("+attr+") VALUES ("+v+");");
-		} catch (SQLException ex) {
-			ex.printStackTrace();
+			rs = s.executeQuery("SELECT * FROM Toon");
+			return rs;
+			//return rs;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
 		}
+
 	}
-	public void insert(String table, String v){
+	// Returns the TID of the searched string or NOT_FOUND if not found
+	public int findName(String name) {
 		try {
-			s.executeUpdate("INSERT INTO "+table+" VALUES ('"+v+"');");
-		} catch (SQLException ex) {
-			ex.printStackTrace();
-		}
-	}
-	// Insert at specific attribute
-	public void insert(String table, String attr, String v) {
-		try {
-			s.executeUpdate("INSERT INTO "+table+" ("+attr+") VALUES ('"+v+"')");
-		} catch (SQLException ex) {
-			ex.printStackTrace();
-		}
-	}
-	// Send raw sql syntax, can be used for INSERT, UPDATE, etc
-	public void sendUpdate(String sqlCmd){
-		try {
-			s.executeUpdate(sqlCmd);
-		} catch (SQLException ex) {
-			ex.printStackTrace();
-		}
-	}
-	public int findName(String v) {
-		try {
-			rs = s.executeQuery("SELECT TID FROM Toon WHERE name='"+v+"';");
+			rs = s.executeQuery("SELECT TID FROM Toon WHERE name='"+name+"';");
 			if (!rs.next()){
 				return NOT_FOUND;
 			} else {
@@ -128,18 +96,9 @@ public class SqlHandler {
 			t.gear = rs.getString("gear");
 			t.comment = rs.getString("comment");
 			return t;
-		} catch (SQLException e) {
-			e.printStackTrace();
+		} catch (SQLException ex) {
+			ex.printStackTrace();
 			return null;
 		}
 	}
-	
-	private void updateMaster(String attr, int v) {
-		try {
-			s.executeUpdate("UPDATE ctrl SET "+attr+"="+v+" WHERE ID='MASTER';");
-		}catch(SQLException ex){
-			ex.printStackTrace();
-		}
-	}
-
 }
