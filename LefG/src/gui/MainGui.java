@@ -1,4 +1,26 @@
 /**
+This file is part of LefG.
+
+    LefG is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    LefG is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with LefG.  If not, see <http://www.gnu.org/licenses/>.
+**/
+
+
+
+
+
+
+/**
  * ADVANCED CLASSES AS FOLLOWS:
  * ME - Mercenary		CO - Commando
  * PT - Powertech		VA - Vanguard
@@ -90,7 +112,7 @@ public class MainGui {
 	    
 	    TabItem tabaddToon = new TabItem(tabFolder, SWT.NONE);
 	    tabaddToon.setText("Add Toon");
-	    
+	    tabaddToon.setControl(gettabAddToonControl(tabFolder));
 	    Composite composite = new Composite(tabFolder, SWT.NONE);
 	    tabaddToon.setControl(composite);
 	    composite.setLayout(null);
@@ -177,10 +199,7 @@ public class MainGui {
 	    lblComment.setBounds(98, 357, 55, 15);
 	    lblComment.setText("Comment:");
 	    
-	    Button btnClear = new Button(composite, SWT.NONE);
-	    btnClear.setBounds(268, 399, 55, 25);
-	    btnClear.setText("Clear");
-	    
+	    // Buttons on Add Toon tab. Why are they here? Who know's. GUI programming is like petting a wet dog.
 	    Button btnAddToon = new Button(composite, SWT.NONE);
 	    btnAddToon.addSelectionListener(new SelectionAdapter() {
 	    	@Override
@@ -191,6 +210,17 @@ public class MainGui {
 	    btnAddToon.setBounds(335, 399, 55, 25);
 	    btnAddToon.setText("Add");
 	    
+	    Button btnClear = new Button(composite, SWT.NONE);
+	    btnClear.addSelectionListener(new SelectionAdapter() {
+	    	@Override
+	    	public void widgetSelected(SelectionEvent arg0) {
+	    		clearToon();
+	    	}
+	    });
+	    	
+	    btnClear.setBounds(268, 399, 55, 25);
+	    btnClear.setText("Clear");
+	    // END buttons on Add Toon tab
 
   }
 	// Executes global refresh of all items
@@ -210,7 +240,8 @@ public class MainGui {
 		 txtName.setText(""); 
 		 txtRName.setText("");
 		 btnClass[0].setSelection(true);
-		 for(int i=1;i<btnClass.length;i++)	btnClass[i].setSelection(false);
+		 btnClass[0].setText(advclass[rep][0]);
+		 for(int i=1;i<btnClass.length;i++)	{btnClass[i].setSelection(false); btnClass[i].setText(advclass[rep][i]);}
 		 rbPub.setSelection(true);
 		 rbImp.setSelection(false);
 		 txtGear.setText("");
@@ -226,7 +257,11 @@ public class MainGui {
   		// Is the toon on the local list?
   		// If the toon is on the local list, we know it is on the db since we built local list from db
 			if(th.hasToonLocal(txtName.getText())){
-				System.out.println("Toon already on database");
+				new MessageBox(shell, SWT.ICON_WORKING | SWT.OK);
+				mb = new MessageBox(shell, SWT.ICON_WORKING | SWT.OK);
+				mb.setText("New Toon");
+				mb.setMessage("Toon already on local list and in database");
+				mb.open();
 				flag = true;
 			}else{
 				// Get name
@@ -260,13 +295,16 @@ public class MainGui {
 		// Add toon to lists (and db if need be)
 		// Recall the ToonHandler.addToon method adds to local list AND database if not already on
 		if (!flag){
-			th.addToon(t);
+			int r = th.addToon(t);
 			clearToon();
 			refresh();
-			mb = new MessageBox(shell, SWT.ICON_WORKING | SWT.OK);
-			mb.setText("New Toon");
-			mb.setMessage("Add new toon to database success");
-			mb.open();
+			
+			if(r == th.FROM_DB){
+				mb = new MessageBox(shell, SWT.ICON_WORKING | SWT.OK);
+				mb.setText("New Toon");
+				mb.setMessage("Add new toon to database success");
+				mb.open();
+			}
 		}
 	}
 	private Control getTabOneControl(TabFolder tabFolder) {
@@ -299,7 +337,7 @@ public class MainGui {
   }
   
 	
-  // QUEUE TAB CONTROL
+ // QUEUE TAB CONTROL
 	private Control gettabQueueControl(TabFolder tabFolder) {
 	  Composite composite = new Composite(tabFolder, SWT.NONE);
 	  composite.setToolTipText("");
@@ -349,6 +387,107 @@ public class MainGui {
       return composite;
 	}
   
+	private Control gettabAddToonControl(TabFolder tabFolder){
+		Composite composite = new Composite(tabFolder, SWT.NONE);
+	    composite.setLayout(null);
+	    
+	    txtName = new Text(composite, SWT.BORDER);
+	    txtName.setBounds(185, 93, 205, 21);
+	    
+	    Label lblName = new Label(composite, SWT.NONE);
+	    lblName.setBounds(113, 99, 55, 15);
+	    lblName.setText("Name:");
+	    
+	    grpFaction = new Group(composite, SWT.NONE);
+	    grpFaction.setText("Faction");
+	    grpFaction.setBounds(113, 154, 118, 62);
+	    
+	    rbPub = new Button(grpFaction, SWT.RADIO);
+	    rbPub.setSelection(true);
+	    rbPub.addSelectionListener(new SelectionAdapter() {
+	    	@Override
+	    	public void widgetSelected(SelectionEvent arg0) {
+	    		for(int i=0; i<btnClass.length; i++){
+	    			btnClass[i].setText(advclass[rep][i]);
+	    		}
+	    	}
+	    });
+	    rbPub.setBounds(10, 20, 80, 16);
+	    rbPub.setText("Republic");
+	    
+	    rbImp = new Button(grpFaction, SWT.RADIO);
+	    rbImp.addSelectionListener(new SelectionAdapter() {
+	    	@Override
+	    	public void widgetSelected(SelectionEvent arg0) {
+	    	    for(int i=0;i<btnClass.length; i++) {
+	    	    	btnClass[i].setText(advclass[imp][i]);
+	    	    }
+	    	}
+	    });
+	    rbImp.setText("Empire");
+	    rbImp.setBounds(10, 36, 80, 16);
+	    
+	    grpClass = new Group(composite, SWT.NONE);
+	    grpClass.setText("Class");
+	    grpClass.setBounds(248, 154, 142, 150);
+	    
+	// Place buttons in class group
+	    int x = 10, y=21, w = 90, h = 16;
+	    for(int i=0;i<btnClass.length; i++){
+	    	btnClass[i] = new Button(grpClass, SWT.RADIO);
+	    	btnClass[i].setBounds(x, y, w, h);
+	    	btnClass[i].setText(advclass[rep][i]);
+	    	y+=15;
+	    }
+	    btnClass[0].setSelection(true);
+	    
+	    
+	 // Server group handling
+	    grpServer = new Group(composite, SWT.NONE);
+	    grpServer.setText("Server");
+	    grpServer.setBounds(113, 222, 118, 82);
+	    
+	    Button btnAllServers = new Button(grpServer, SWT.RADIO);
+	    btnAllServers.setSelection(true);
+	    btnAllServers.setBounds(10, 20, 90, 16);
+	    btnAllServers.setText("All Servers");
+	    
+	    Label lblRetypeName = new Label(composite, SWT.NONE);
+	    lblRetypeName.setText("Retype Name:");
+	    lblRetypeName.setBounds(75, 120, 94, 15);
+	    
+	    txtRName = new Text(composite, SWT.BORDER);
+	    txtRName.setBounds(185, 120, 205, 21);
+	    
+	    txtGear = new Text(composite, SWT.BORDER);
+	    txtGear.setBounds(185, 325, 76, 21);
+	    
+	    txtComment = new Text(composite, SWT.BORDER);
+	    txtComment.setBounds(185, 354, 205, 21);
+	    
+	    Label lblGear = new Label(composite, SWT.NONE);
+	    lblGear.setBounds(124, 328, 27, 15);
+	    lblGear.setText("Gear:");
+	    
+	    Label lblComment = new Label(composite, SWT.NONE);
+	    lblComment.setBounds(98, 357, 55, 15);
+	    lblComment.setText("Comment:");
+	    
+
+	    
+	    Button btnAddToon = new Button(composite, SWT.NONE);
+	    btnAddToon.addSelectionListener(new SelectionAdapter() {
+	    	@Override
+	    	public void widgetSelected(SelectionEvent arg0) {
+	    		addToon();
+	    	}
+	    });
+	    btnAddToon.setBounds(335, 399, 55, 25);
+	    btnAddToon.setText("Add");
+	    return composite;
+
+  }
+	
 	private Control getTabThreeControl(TabFolder tabFolder) {
     // Create some labels and text fields
     Composite composite = new Composite(tabFolder, SWT.NONE);

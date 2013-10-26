@@ -1,12 +1,28 @@
+/**
+This file is part of LefG.
+
+    LefG is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    LefG is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with LefG.  If not, see <http://www.gnu.org/licenses/>.
+**/
+
+
 package src;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.LinkedList;
 
@@ -17,6 +33,7 @@ public class ToonHandler {
 	SqlHandler sh = new SqlHandler();
 	Toon t;
 	
+	public final int E_ADDTOON_LOCAL = -3;
 	public final int E_ADDTOON = -2; //Error return from addToon()
 	public final int FROM_DB = 2;	 //New db entry
 	public final int FROM_LOCAL=3;	 //Already in db
@@ -47,32 +64,39 @@ public class ToonHandler {
 	}
 	// Add a toon to the local linked list. Adds to global toon list on db when name not found
 	public int addToon(Toon t) {
-		int TID = sh.findName(t.name);
-		if(TID > sh.NOT_FOUND){
-			t.TID = TID;
-			Toons.add(t);
-			return FROM_LOCAL;
-		} else if(TID == sh.NOT_FOUND) {
-			sh.insertToon(t);
-			try {
-				PrintWriter out = new PrintWriter(new FileWriter(toonfile, true));
-				out.println(t.name);
-				out.close();
-			} catch (IOException e) {
-				e.printStackTrace();
+		// First, we must make sure the toon is is not a duplicate on the local list
+		if(hasToonLocal(t.name)){
+			System.out.println(t.name);
+
+			return E_ADDTOON_LOCAL;
+		}else{
+			int TID = sh.findName(t.name);
+			if(TID > sh.NOT_FOUND){
+				t.TID = TID;
+				Toons.add(t);
+				return FROM_LOCAL;
+			} else if(TID == sh.NOT_FOUND) {
+				sh.insertToon(t);
+				try {
+					PrintWriter out = new PrintWriter(new FileWriter(toonfile, true));
+					out.println(t.name);
+					out.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				Toons.add(t);
+				return FROM_DB;
+			} else {
+				System.out.println("Hello Alice. You've arrived a little early");
+				return E_ADDTOON;
 			}
-			Toons.add(t);
-			return FROM_DB;
-		} else {
-			System.out.println("Hello Alice. You've arrived a little early");
-			return E_ADDTOON;
 		}
 	}
 	
 	// Checks to see if toon is in local list
 	public boolean hasToonLocal(String name) {
 		for(int i=0;i<Toons.size(); i++){
-			if(Toons.get(i).name.equals(name)){
+			if((Toons.get(i).name).equals(name)){
 				return true;
 			}
 		}
