@@ -51,7 +51,7 @@ public class SqlHandler {
 	// Inserts a toon into the database
 	public void insertToon(Toon t){
 		try {
-			s.executeUpdate("INSERT INTO Toon (name, class, gear, comment) VALUES ("+
+			s.executeUpdate("INSERT INTO Toon (name, class, gear, comment) VALUES ('"+
 							t.name+"', '"+t.advclass+"', '"+t.gear+"', '"+t.comment+"');");
 		} catch (SQLException e) {
 			e.printStackTrace();

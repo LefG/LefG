@@ -5,6 +5,7 @@ public class Toon {
 	public String name;
 	public String advclass;
 	public String gear;
+	public int faction;
 	public String comment;
 	public String server;
 	public Toon(String name, String advclass, String gear, String comment) {
