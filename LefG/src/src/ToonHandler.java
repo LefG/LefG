@@ -8,7 +8,7 @@ import java.util.LinkedList;
 
 import toon.Toon;
 public class ToonHandler {
-	LinkedList<Toon> Toons = new LinkedList<Toon>();
+	public LinkedList<Toon> Toons = new LinkedList<Toon>();
 	SqlHandler sh = new SqlHandler();
 	Toon t;
 	

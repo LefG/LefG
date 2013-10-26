@@ -4,12 +4,15 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 
-/**
- * Creates a tabbed display with four tabs, and a few controls on each page
- */
+import src.ToonHandler;
+
 public class MainGui {
-	private Table tblDbList, tblQueueList;
+	ToonHandler th;
+	private Table tblDbList;
+	private Table tblQueue;
   
   public void run() {
     Display display = new Display();
@@ -21,6 +24,7 @@ public class MainGui {
     shell.setText("LefG .1");
     createContents(shell);
     shell.open();
+    th = new ToonHandler();
     while (!shell.isDisposed()) {
       if (!display.readAndDispatch()) {
         display.sleep();
@@ -29,11 +33,6 @@ public class MainGui {
     display.dispose();
   }
 
-  /**
-   * Creates the contents
-   * 
-   * @param shell the parent shell
-   */
   private void createContents(Shell shell) {
     // Create the containing tab folder
     final TabFolder tabFolder = new TabFolder(shell, SWT.NONE);
@@ -45,14 +44,10 @@ public class MainGui {
     one.setToolTipText("Main stats and controls");
     one.setControl(getTabOneControl(tabFolder));
     
-
-    
-    TabItem tbtmQueues = new TabItem(tabFolder, SWT.NONE);
-    tbtmQueues.setText("Queues");
-    tbtmQueues.setControl(getTabTwoControl(tabFolder));
-    Composite composite = new Composite(tabFolder, SWT.NONE);
-    tbtmQueues.setControl(composite);
-
+    TabItem tabQueue = new TabItem(tabFolder, SWT.NONE);
+    tabQueue.setText("Queue");
+    tabQueue.setControl(gettabQueueControl(tabFolder));
+     
     TabItem three = new TabItem(tabFolder, SWT.NONE);
     three.setText("Group");
     three.setToolTipText("This is tab three");
@@ -63,17 +58,10 @@ public class MainGui {
     four.setToolTipText("General debugging controls");
 
     tabFolder.setSelection(0);
+    
 
   }
 
-  /**
-  
-  /**
-   * Gets the control for tab one
-   * 
-   * @param tabFolder the parent tab folder
-   * @return Control
-   */
   private Control getTabOneControl(TabFolder tabFolder) {
     // Create a composite and add four buttons to it
     Composite composite = new Composite(tabFolder, SWT.NONE);
@@ -102,35 +90,52 @@ public class MainGui {
 	
     return composite;
   }
-
-  private Control getTabTwoControl(TabFolder tabFolder) {
-	Composite composite = new Composite(tabFolder, SWT.NONE);
-    composite.setLayout(null);
-    
-    //Set up table on main
-    tblQueueList = new Table(composite, SWT.BORDER | SWT.FULL_SELECTION);
-    tblQueueList.setHeaderVisible(true);
-    tblQueueList.setBounds(24, 10, 450, 400);
-    
-    TableColumn tblclmnName = new TableColumn(tblQueueList, SWT.NONE);
-    tblclmnName.setWidth(125);
-    tblclmnName.setText("Name");
-    
-    TableColumn tblclmnClass = new TableColumn(tblQueueList, SWT.NONE);
-    tblclmnClass.setWidth(50);
-    tblclmnClass.setText("Class");
-    
-    TableColumn tblclmnGear = new TableColumn(tblQueueList, SWT.NONE);
-    tblclmnGear.setWidth(100);
-    tblclmnGear.setText("Gear");
-    
-    TableColumn tblclmnComment = new TableColumn(tblQueueList, SWT.LEFT);
-    tblclmnComment.setWidth(171);
-    tblclmnComment.setText("Comments");
-	
-    return composite;
+  // QUEUE TAB CONTROL
+  private Control gettabQueueControl(TabFolder tabFolder) {
+	  Composite composite = new Composite(tabFolder, SWT.NONE);
+	  composite.setToolTipText("");
+	  composite.setLayout(null);
+	  tblQueue = new Table(composite, SWT.BORDER);
+      tblQueue.setHeaderVisible(true);
+      tblQueue.setBounds(24, 10, 450, 150);
+      
+      TableColumn tblclmnName = new TableColumn(tblQueue, SWT.NONE);
+      tblclmnName.setWidth(137);
+      tblclmnName.setText("Name");
+      
+      TableColumn tblclmnClass = new TableColumn(tblQueue, SWT.NONE);
+      tblclmnClass.setWidth(47);
+      tblclmnClass.setText("Class");
+      
+      TableColumn tblclmnGear = new TableColumn(tblQueue, SWT.NONE);
+      tblclmnGear.setWidth(54);
+      tblclmnGear.setText("Gear");
+      
+      TableColumn tblclmnQueuedFor = new TableColumn(tblQueue, SWT.NONE);
+      tblclmnQueuedFor.setWidth(246);
+      tblclmnQueuedFor.setText("Queued For");
+      
+      Button btnQueue = new Button(composite, SWT.NONE);
+      btnQueue.addSelectionListener(new SelectionAdapter() {
+      	@Override
+      	public void widgetSelected(SelectionEvent arg0) {
+      	}
+      });
+      btnQueue.setBounds(318, 166, 75, 25);
+      btnQueue.setText("Enter Queue ");
+      
+      Button btnLeaveQueue = new Button(composite, SWT.NONE);
+      btnLeaveQueue.setBounds(399, 166, 75, 25);
+      btnLeaveQueue.setText("Leave Queue");
+      
+      Combo cmbToon = new Combo(composite, SWT.READ_ONLY);
+      cmbToon.setBounds(24, 168, 195, 25);
+      for(int i=0; i<th.Toons.size(); i++){
+    	  cmbToon.add(th.Toons.get(i).name);
+      }
+      return composite;
   }
-
+  
   private Control getTabThreeControl(TabFolder tabFolder) {
     // Create some labels and text fields
     Composite composite = new Composite(tabFolder, SWT.NONE);
