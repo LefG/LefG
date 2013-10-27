@@ -50,6 +50,9 @@ public class MainGui {
 	MessageBox mb;
 	ToonHandler th;
 	Toon t;
+
+
+	// All text information needed for advanced class
 	String[][] advclass = {
 			{"Guardian", "Sentinel", "Sage", "Shadow", "Gunslinger", "Scoundrel", "Commando", "Vanguard"},
 			{"GU", "SE", "SA", "SH", "GS", "SC", "CO", "VG"},

@@ -37,6 +37,8 @@ import toon.Toon;
 
 public class SqlHandler {
 	public final int NOT_FOUND = -1;
+	public final int QUEUE_ADD = 2;
+	public final int QUEUE_UPDATE = 3;
 	// Our database settings
 	private final String DBURL = "jdbc:mysql://db4free.net:3306/swtorlefg";
 	private final String DBUN = "swtorlefg";
@@ -117,6 +119,23 @@ public class SqlHandler {
 		} catch (SQLException ex) {
 			ex.printStackTrace();
 			return null;
+		}
+	}
+	
+	public int addToonQueue(Toon t){
+		try {
+			if(!(s.executeQuery("SELECT * FROM tb_queue WHERE TID="+t.TID+";").next())){
+				// NEW ENTRY
+				s.executeUpdate("INSERT INTO tb_queue (TID, QueueList) VALUES ("+t.TID+", "+t.queues+");");
+				return QUEUE_ADD;
+			}else{
+				s.executeUpdate("UPDATE tb_queue SET QueueList="+t.queues+" WHERE TID="+t.TID+";");
+				return QUEUE_UPDATE;
+				// UPDATE @ TID
+			}
+		}catch(SQLException ex){
+			ex.printStackTrace();
+			return NOT_FOUND;
 		}
 	}
 }

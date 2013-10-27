@@ -24,12 +24,9 @@ public class Toon {
 	public int faction;
 	public String comment;
 	public String server;
-	/**
-		We are going to use bitwise operators to keep track of queues
-		Recall that 4 binary digits can be represented as 1 hex digit
-		I.e. (binary) 1010 1101 1010 1001 in hex 0xADA9
-		Since most queues have SM/HM
-	**/
+	public int queues = 0x0; //Further explanation on the queue functions can be found in the class QueueHandler.java
+	
+	
 	public Toon(String name, String advclass, String gear, String comment) {
 		this.name = name;
 		this.advclass = advclass;

@@ -31,7 +31,9 @@ public class ToonHandler {
 	File toonfile = new File("toonlist.ini");
 	public LinkedList<Toon> Toons = new LinkedList<Toon>();
 	SqlHandler sh = new SqlHandler();
+	QueueHandler q = new QueueHandler();
 	Toon t;
+
 	
 	public final int E_ADDTOON_LOCAL = -3;
 	public final int E_ADDTOON = -2; //Error return from addToon()
@@ -39,7 +41,7 @@ public class ToonHandler {
 	public final int FROM_LOCAL=3;	 //Already in db
 	// Get info on toons already on db
 	public ToonHandler(){
-		// Look up usernames locallly stored on db
+		// Look up usernames locally stored on db
 		try {
 			BufferedReader in = new BufferedReader(new FileReader(toonfile));
 			in.readLine(); //Get past first line of file
@@ -67,7 +69,6 @@ public class ToonHandler {
 		// First, we must make sure the toon is is not a duplicate on the local list
 		if(hasToonLocal(t.name)){
 			System.out.println(t.name);
-
 			return E_ADDTOON_LOCAL;
 		}else{
 			int TID = sh.findName(t.name);
@@ -77,6 +78,7 @@ public class ToonHandler {
 				return FROM_LOCAL;
 			} else if(TID == sh.NOT_FOUND) {
 				sh.insertToon(t);
+				t.TID = sh.findName(t.name);
 				try {
 					PrintWriter out = new PrintWriter(new FileWriter(toonfile, true));
 					out.println(t.name);
@@ -107,5 +109,25 @@ public class ToonHandler {
 	public boolean hasToonDb(String name) {
 		if(sh.findName(name) > sh.NOT_FOUND) return true;
 		return false;
+	}
+
+	// For easily accessing a specific bit
+	// For instance use (KP+SM16) to access the KPSM16 queue status
+	
+
+	public void queueToon(Toon t, int op){
+		t.queues = q.setQueueBit(t.queues, op);
+	}
+	public void dequeueToon(Toon t, int op){
+		t.queues = q.unsetQueueBit(t.queues, op);
+	}
+	
+	public void commitQueue(Toon t){
+		int r = sh.addToonQueue(t);
+		if (r == sh.QUEUE_ADD){
+			System.out.println("Added to queue");
+		}else if(r==sh.QUEUE_UPDATE){
+			System.out.println("Updated queue");
+		}
 	}
 }
