@@ -24,7 +24,7 @@ public class Toon {
 	public int faction;
 	public String comment;
 	public String server;
-	public int queues = 0x0; //Further explanation on the queue functions can be found in the class QueueHandler.java
+	public long queues = 0x0; //Further explanation on the queue functions can be found in the class QueueHandler.java
 	
 	
 	public Toon(String name, String advclass, String gear, String comment) {

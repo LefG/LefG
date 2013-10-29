@@ -34,7 +34,7 @@ public class ToonHandler {
 	QueueHandler q = new QueueHandler();
 	Toon t;
 
-	
+	public final int NOT_FOUND=-1;
 	public final int E_ADDTOON_LOCAL = -3;
 	public final int E_ADDTOON = -2; //Error return from addToon()
 	public final int FROM_DB = 2;	 //New db entry
@@ -67,7 +67,7 @@ public class ToonHandler {
 	// Add a toon to the local linked list. Adds to global toon list on db when name not found
 	public int addToon(Toon t) {
 		// First, we must make sure the toon is is not a duplicate on the local list
-		if(hasToonLocal(t.name)){
+		if(hasToonLocal(t.name)>NOT_FOUND){
 			System.out.println(t.name);
 			return E_ADDTOON_LOCAL;
 		}else{
@@ -96,13 +96,13 @@ public class ToonHandler {
 	}
 	
 	// Checks to see if toon is in local list
-	public boolean hasToonLocal(String name) {
+	public int hasToonLocal(String name) {
 		for(int i=0;i<Toons.size(); i++){
 			if((Toons.get(i).name).equals(name)){
-				return true;
+				return i;
 			}
 		}
-		return false;
+		return NOT_FOUND;
 	}
 	
 	// Checks to see if toon is on db
@@ -111,19 +111,22 @@ public class ToonHandler {
 		return false;
 	}
 
-	// For easily accessing a specific bit
-	// For instance use (KP+SM16) to access the KPSM16 queue status
 	
-
-	public void queueToon(Toon t, int op){
+	
+	// Queue handling
+	public int queueToon(Toon t, int op){
 		t.queues = q.setQueueBit(t.queues, op);
+		return t.queues;
 	}
-	public void dequeueToon(Toon t, int op){
+	public int dequeueToon(Toon t, int op){
 		t.queues = q.unsetQueueBit(t.queues, op);
+		return t.queues;
 	}
-	
+	public void dequeueToon(Toon t){
+		t.queues = 0;
+	}
 	public void commitQueue(Toon t){
-		int r = sh.addToonQueue(t);
+		int r = sh.updateToonQueue(t);
 		if (r == sh.QUEUE_ADD){
 			System.out.println("Added to queue");
 		}else if(r==sh.QUEUE_UPDATE){

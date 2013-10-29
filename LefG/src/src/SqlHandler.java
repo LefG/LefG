@@ -39,6 +39,7 @@ public class SqlHandler {
 	public final int NOT_FOUND = -1;
 	public final int QUEUE_ADD = 2;
 	public final int QUEUE_UPDATE = 3;
+	public final int QUEUE_REMOVE = 4;
 	// Our database settings
 	private final String DBURL = "jdbc:mysql://db4free.net:3306/swtorlefg";
 	private final String DBUN = "swtorlefg";
@@ -90,7 +91,7 @@ public class SqlHandler {
 		}
 
 	}
-	// Returns the TID of the searched string or NOT_FOUND if not found
+	// Returns the TID in table Toon of the searched string or NOT_FOUND
 	public int findName(String name) {
 		try {
 			rs = s.executeQuery("SELECT TID FROM Toon WHERE name='"+name+"';");
@@ -103,6 +104,29 @@ public class SqlHandler {
 		} catch (SQLException ex) {
 			ex.printStackTrace();
 			return NOT_FOUND;
+		}
+	}
+	public int findName(String name, String table){
+		try {
+			rs = s.executeQuery("SELECT TID FROM "+table+" WHERE name='"+name+"';");
+			if (!rs.next()){
+				return NOT_FOUND;
+			}else {
+				int TID = rs.getInt("TID");
+				return TID;
+			}
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+			return NOT_FOUND;
+		}
+	}
+	public boolean findTID(int TID, String table){
+		try {
+			return(s.executeQuery("SELECT * FROM "+table+" WHERE TID="+TID+";").next());
+		} catch (SQLException ex) {
+			// TODO Auto-generated catch block
+			ex.printStackTrace();
+			return false;
 		}
 	}
 	public Toon getToonInfo(int TID) {
@@ -122,18 +146,23 @@ public class SqlHandler {
 		}
 	}
 	
-	public int addToonQueue(Toon t){
+	public int updateToonQueue(Toon t){
 		try {
 			if(!(s.executeQuery("SELECT * FROM tb_queue WHERE TID="+t.TID+";").next())){
 				// NEW ENTRY
 				s.executeUpdate("INSERT INTO tb_queue (TID, QueueList) VALUES ("+t.TID+", "+t.queues+");");
 				return QUEUE_ADD;
-			}else{
+			}else if(t.queues > 0){
 				s.executeUpdate("UPDATE tb_queue SET QueueList="+t.queues+" WHERE TID="+t.TID+";");
 				return QUEUE_UPDATE;
 				// UPDATE @ TID
+			}else if(t.queues==0 && findTID(t.TID, "tb_queue")){
+			   s.executeUpdate("DELETE FROM tb_queue WHERE TID="+t.TID+";");
+			   return QUEUE_REMOVE;
+			}else{
+				return NOT_FOUND;
 			}
-		}catch(SQLException ex){
+		} catch (SQLException ex){
 			ex.printStackTrace();
 			return NOT_FOUND;
 		}

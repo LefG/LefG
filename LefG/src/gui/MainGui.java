@@ -40,6 +40,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 
+import src.QueueHandler;
 import src.ToonHandler;
 import toon.Toon;
 
@@ -60,15 +61,18 @@ public class MainGui {
 			{"JU", "MA", "SO", "AS", "SN", "OP", "ME", "PT" }
 	};
 	private Combo cmbToon;
+	
 	private Group grpFaction, grpServer, grpClass;
 	private Table tblDbList;
 	private Table tblQueue;
 	private Text txtName;
 	private Button[] btnClass = new Button[8];
+	private Button[] chkOps  = new Button[32];
 	private Button rbPub, rbImp;
 	private Text txtRName;
 	private Text txtGear;
 	private Text txtComment;
+	
 	
   
 	public void run() {
@@ -224,8 +228,53 @@ public class MainGui {
 	    btnClear.setBounds(268, 399, 55, 25);
 	    btnClear.setText("Clear");
 	    // END buttons on Add Toon tab
-
+	    
   }
+	private void addToonToQueue(){
+		if(cmbToon.getSelectionIndex()>-1){
+			Toon t = th.Toons.get(cmbToon.getSelectionIndex());
+			if(t.queues==0){
+				for(int i=0;i<chkOps.length; i++){
+					if (chkOps[i].getSelection()) t.queues = th.queueToon(t, i);
+				}
+				if(t.queues > 0) {
+					TableItem ti = new TableItem(tblQueue, SWT.NONE);
+					ti.setText(0,t.name);
+					ti.setText(1,t.advclass);
+					ti.setText(2,t.gear);
+					ti.setText(3,String.valueOf(t.queues));
+				}
+			}else{
+				for(int i=0;i<chkOps.length; i++){
+					if (chkOps[i].getSelection()) t.queues = th.queueToon(t, i);
+					else t.queues = th.dequeueToon(t, i); 
+				}
+				rebuildQueueTable();	
+						
+			}	
+		}
+	}
+	private void rebuildQueueChk(TableItem ti){
+		QueueHandler q = new QueueHandler();
+		cmbToon.select(th.hasToonLocal(ti.getText(0)));
+		for(int i=0;i<chkOps.length;i++){
+			if(q.checkQueueBit(Integer.parseInt(ti.getText(3)), i)) chkOps[i].setSelection(true);
+			else chkOps[i].setSelection(false);
+		}
+	}
+	private void rebuildQueueTable() {
+		Toon t = th.Toons.get(cmbToon.getSelectionIndex());
+		System.out.println(t.queues);
+		TableItem ti[];
+		ti = tblQueue.getItems();
+		//tblQueue.
+		for(int i=0; i<ti.length; i++){
+			if(ti[i].getText(0).equals(t.name)){
+				if(t.queues==0)tblQueue.remove(i);
+				else ti[i].setText(3, String.valueOf(t.queues));
+			}
+		}
+	}
 	// Executes global refresh of all items
 	private void refresh(){
 		queueCmbBox();
@@ -259,7 +308,7 @@ public class MainGui {
 				txtName.getText().equals(txtRName.getText())) {
   		// Is the toon on the local list?
   		// If the toon is on the local list, we know it is on the db since we built local list from db
-			if(th.hasToonLocal(txtName.getText())){
+			if(th.hasToonLocal(txtName.getText())>th.NOT_FOUND){
 				new MessageBox(shell, SWT.ICON_WORKING | SWT.OK);
 				mb = new MessageBox(shell, SWT.ICON_WORKING | SWT.OK);
 				mb.setText("New Toon");
@@ -335,6 +384,10 @@ public class MainGui {
     TableColumn tblclmnComment = new TableColumn(tblDbList, SWT.LEFT);
     tblclmnComment.setWidth(171);
     tblclmnComment.setText("Comments");
+    
+    Button btnUpdateList = new Button(composite, SWT.NONE);
+    btnUpdateList.setBounds(399, 416, 75, 25);
+    btnUpdateList.setText("Update List");
 	
     return composite;
   }
@@ -349,6 +402,17 @@ public class MainGui {
 	  // TABLE CONTROLS
 	  
 	  tblQueue = new Table(composite, SWT.BORDER);
+	  tblQueue.addSelectionListener(new SelectionAdapter() {
+	  	@Override
+	  	public void widgetSelected(SelectionEvent arg0) {
+	  		TableItem[] ti = tblQueue.getSelection();
+	  		if(ti.length>1){
+	  			for(int i=0;i<chkOps.length;i++)chkOps[i].setEnabled(false);
+	  		}else{
+	  			rebuildQueueChk(ti[0]);
+	  		}
+	  	}
+	  });
       tblQueue.setHeaderVisible(true);
       tblQueue.setBounds(24, 10, 450, 150);
       
@@ -371,21 +435,78 @@ public class MainGui {
       // END TABLE CONTROLS
       // BEGIN OTHER ELEMENTS
       
+      
+      
+      // BEGIN QUEUE CONTROLS -- 
       Button btnQueue = new Button(composite, SWT.NONE);
       btnQueue.addSelectionListener(new SelectionAdapter() {
-      	@Override
       	public void widgetSelected(SelectionEvent arg0) {
+      		addToonToQueue();
       	}
       });
       btnQueue.setBounds(318, 166, 75, 25);
       btnQueue.setText("Enter Queue ");
       
       Button btnLeaveQueue = new Button(composite, SWT.NONE);
+      btnLeaveQueue.addSelectionListener(new SelectionAdapter() {
+      	@Override
+      	public void widgetSelected(SelectionEvent arg0) {
+      		Toon t = th.Toons.get(cmbToon.getSelectionIndex());
+      		t.queues=0;
+      		rebuildQueueTable();
+      	}
+      });
       btnLeaveQueue.setBounds(399, 166, 75, 25);
       btnLeaveQueue.setText("Leave Queue");
       
       cmbToon = new Combo(composite, SWT.READ_ONLY);
       cmbToon.setBounds(24, 168, 195, 25);
+      Group chkOpsGrp = new Group(composite, SWT.NONE);
+      chkOpsGrp.setBounds(45, 210, 411, 182);
+      int x=10, y=10, w=93, h=16;
+      for(int i=0;i<chkOps.length;i++){
+    	  if(i%8==0 && i>0){
+    		  x+=99;
+    		  y=10;
+    	  }
+    	  chkOps[i] = new Button(chkOpsGrp, SWT.CHECK);
+    	  chkOps[i].setBounds(x, y, w, h);
+    	  y+=22;
+      }
+
+      chkOps[0].setText("EV SM 8");
+      chkOps[1].setText("EV SM 16");
+      chkOps[2].setText("EV HM 8");
+      chkOps[3].setText("EV HM 16");
+      chkOps[4].setText("EC SM 8");
+      chkOps[5].setText("EC SM 16");
+      chkOps[6].setText("EC HM 8");
+      chkOps[7].setText("EC HM 16");
+      chkOps[8].setText("KP SM 8");
+      chkOps[9].setText("KP SM 16");
+      chkOps[10].setText("KP HM 8");
+      chkOps[11].setText("KP HM 16");
+      chkOps[12].setText("TC SM 8");
+      chkOps[13].setText("TC SM 16");
+      chkOps[14].setText("TC HM 8");
+      chkOps[15].setText("TC HM 16");
+      chkOps[16].setText("SnV SM 8");
+      chkOps[17].setText("SnV SM 16");
+      chkOps[18].setText("SnV HM 8");
+      chkOps[19].setText("SnV HM 16");
+      chkOps[20].setText("TFB SM 8");
+      chkOps[21].setText("TFB SM 16");
+      chkOps[22].setText("TFB HM 8");
+      chkOps[23].setText("TFB HM 16");
+      chkOps[24].setText("DP SM 8");
+      chkOps[25].setText("DP SM 16");
+      chkOps[26].setText("DP HM 8");
+      chkOps[27].setText("DP HM 16");
+      chkOps[28].setText("DF SM 8");
+      chkOps[29].setText("DF SM 16");
+      chkOps[30].setText("DF HM 8");
+      chkOps[31].setText("DF HM 16");
+      
       queueCmbBox();
       return composite;
 	}
